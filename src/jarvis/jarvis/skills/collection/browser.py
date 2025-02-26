@@ -27,6 +27,7 @@ import re
 import urllib.request
 import subprocess
 import webbrowser
+import json
 
 from bs4 import BeautifulSoup as bs
 
@@ -71,18 +72,75 @@ class BrowserSkills(AssistantSkill):
 
             try:
                 if reg_ex:
+                    headers={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'}
                     search_text = reg_ex.group(1)
-                    base = "https://www.youtube.com/results?search_query={0}&orderby=viewCount"
-                    r = requests.get(base.format(search_text.replace(' ', '+')))
+                   # base = "https://www.youtube.com/results?search_query={0}&orderby=viewCount"
+                    search_url = "https://www.youtube.com/results?search_query=" + search_text.replace(" ", "+")
+                    
+                    # Make the HTTP request
+                    r = requests.get(search_url,headers=headers)
                     page = r.text
                     soup = bs(page, 'html.parser')
-                    vids = soup.findAll('a', attrs={'class': 'yt-uix-tile-link'})
-                    video = 'https://www.youtube.com' + vids[0]['href'] + "&autoplay=1"
-                    cls.console(info_log="Play Youtube video: {0}".format(video))
-                    subprocess.Popen(["python", "-m", "webbrowser", "-t", video], stdout=subprocess.PIPE, shell=False)
+
+                    aid = soup.find('script', string=re.compile('ytInitialData'))
+                    extracted_json_text = aid.text.split('= ', 1)[1].strip().rstrip(';')
+                    video_results = json.loads(extracted_json_text)
+
+                    # Parse the video results
+                    item_section = video_results["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"]
+
+                    if item_section:
+                        video_info = None
+                        for item in item_section:
+                            if "videoRenderer" in item:
+                                video_info = item["videoRenderer"]
+                                break
+
+                        if video_info:
+                            title = video_info.get("title", {}).get("runs", [{}])[0].get("text", "Untitled")
+                            url = video_info["videoId"]
+                            vid_url = "https://www.youtube.com/watch?v=" + url
+
+                            subprocess.Popen(["python3", "-m", "webbrowser", "-t", vid_url], stdout=subprocess.PIPE, shell=False)
+
+                            # Optionally, you can also return a response or take some other action
+                            cls.response(f"Now playing: {title}")
+                        else:
+                            cls.response("No valid video found in the search results.")
+                    else:
+                        cls.response("No results found for your search.")
+                else:
+                    cls.console(error_log="No valid search query found.")
+                    cls.response("Please provide a valid search query.")
             except Exception as e:
-                cls.console(error_log="Error with the execution of skill with message {0}".format(e))
-                cls.response("I can't find what do you want in Youtube..")
+                cls.console(error_log="Error with the execution of skill: {0}".format(e))
+                cls.response("I can't find what you're looking for on YouTube..")
+    # def open_in_youtube(cls, voice_transcript, skill):
+    #     """
+    #     Open a video in youtube.
+    #     :param voice_transcript: string (e.g 'play mozart')
+    #     :param skill: dict (e.g
+    #     """
+
+    #     tags = cls.extract_tags(voice_transcript, skill['tags'])
+    #     for tag in tags:
+    #         reg_ex = re.search(tag + ' (.*)', voice_transcript)
+
+    #         try:
+    #             if reg_ex:
+    #                 search_text = reg_ex.group(1)
+    #                 base = "https://www.youtube.com/results?search_query={0}&orderby=viewCount"
+    #                 r = requests.get(base.format(search_text.replace(' ', '+')))
+    #                 page = r.text
+    #                 soup = bs(page, 'html.parser')
+    #                 vids = soup.findAll('a', attrs={'class': 'yt-uix-tile-link'})
+    #                 video = 'https://www.youtube.com' + vids[0]['href'] + "&autoplay=1"
+    #                 cls.console(info_log="Play Youtube video: {0}".format(video))
+    #               #  subprocess.Popen(["python", "-m", "webbrowser", "-t", video], stdout=subprocess.PIPE, shell=False)
+    #                 webbrowser.open_new_tab(video)
+    #         except Exception as e:
+    #             cls.console(error_log="Error with the execution of skill with message {0}".format(e))
+    #             cls.response("I can't find what do you want in Youtube..")
 
     @classmethod
     def open_website_in_browser(cls, voice_transcript, skill):
@@ -123,7 +181,7 @@ class BrowserSkills(AssistantSkill):
     @classmethod
     def tell_me_today_news(cls, **kwargs):
         try:
-            news_url = "https://news.google.com/news/rss"
+            news_url = "https://news.google.com/rss"
             client = urllib.request.urlopen(news_url)
             xml_page = client.read()
             client.close()
@@ -131,8 +189,8 @@ class BrowserSkills(AssistantSkill):
             news_list = soup.findAll("item")
             response = ""
             for news in news_list[:5]:
-                data = news.title.text.encode('utf-8') + '\n'
-                response += data.decode()
+                data = '• '+news.title.text + '\n\t'
+                response += data+'\n'
             cls.response(response)
         except Exception as e:
             cls.console(error_log="Error with the execution of skill with message {0}".format(e))

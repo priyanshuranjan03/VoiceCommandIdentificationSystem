@@ -44,15 +44,16 @@ class STTEngine:
         self.microphone = sr.Microphone()
         self.console_manager.console_output(info_log="Microphone configured successfully!")
 
-    def recognize_input(self, already_activated=False):
+    def recognize_input(self, already_activated=True):
         """
         Recognize input from mic and returns transcript if activation tag (assistant name) exist
         """
 
         while True:
             transcript = self._recognize_speech_from_mic()
-            if already_activated or self._activation_name_exist(transcript):
-                transcript = self._remove_activation_word(transcript)
+            if already_activated and len(transcript)>0:
+                if self._activation_name_exist(transcript):
+                    return self._remove_activation_word(transcript)
                 return transcript
 
     def _recognize_speech_from_mic(self, ):

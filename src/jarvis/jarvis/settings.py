@@ -67,9 +67,9 @@ Keys Description:
 
 
 DEFAULT_GENERAL_SETTINGS = {
-    'assistant_name': 'Jarvis',
-    'input_mode': InputMode.TEXT.value,
-    'response_in_speech': False,
+    'assistant_name': 'jarvis',
+    'input_mode': InputMode.VOICE.value,
+    'response_in_speech': True,
 }
 
 
@@ -102,7 +102,7 @@ Create key: https://openweathermap.org/appid
 """
 WEATHER_API = {
     'unit': 'celsius',
-    'key': None
+    'key': '31303039cc1e1207f6ed06178c4b5fc7'
 }
 
 
@@ -112,7 +112,7 @@ Create key: https://developer.wolframalpha.com/portal/myapps/
 
 """
 WOLFRAMALPHA_API = {
-    'key': None
+    'key': 'YHXKWK-5RKX94PQX5'
 }
 
 
@@ -122,5 +122,5 @@ Create key: https://ipstack.com/signup/free
 
 """
 IPSTACK_API = {
-    'key': None
+    'key': '3063b61638e7dd9fca4c46d4ca1d81e6'
 }

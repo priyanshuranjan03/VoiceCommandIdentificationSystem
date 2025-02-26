@@ -71,15 +71,36 @@ class WeatherSkills(AssistantSkill):
 
     @classmethod
     def _get_weather_status_and_temperature(cls, city):
-        owm = OWM(API_key=WEATHER_API['key'])
-        if owm.is_API_online():
-            obs = owm.weather_at_place(city)
-            weather = obs.get_weather()
-            status = weather.get_status()
-            temperature = weather.get_temperature(WEATHER_API['unit'])
-            return status, temperature
-        else:
+        if not WEATHER_API.get('key'):
+         print("Error: API key is missing.")  # Debug statement
+         return None, None
+        
+        try:
+           owm = OWM(api_key=WEATHER_API['key'])
+           
+
+           # Get the WeatherManager instance
+           weather_manager = owm.weather_manager()
+
+           # Fetch weather data for the city
+           observation = weather_manager.weather_at_place(city)
+           weather = observation.weather
+
+           # Extract weather status and temperature
+           status = weather.status
+           temperature = weather.temperature(WEATHER_API['unit'])
+
+           # Ensure data is valid
+           if not status or not temperature:
+            print("Error: Incomplete weather data received.")  # Debug statement
             return None, None
+
+           return status, temperature
+
+        except Exception as e:
+         # Handle exceptions (e.g., invalid city name, API errors)
+          print(f"Error fetching weather data: {e}")  # Debug statement
+          return None, None
 
     @classmethod
     def _get_city(cls, reg_ex):

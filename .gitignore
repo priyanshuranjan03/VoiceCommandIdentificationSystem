@@ -1,6 +1,30 @@
-# Exclude python executables and cached folders
-*.pyc
-__pycache__
+# Ignore build and distribution directories
+/build/
+/dist/
+/Jarvis.egg-info/
 
-# Exclude pycharm metadata
- .idea/
+# Ignore virtual environment directory
+/jarvis_virtualenv/
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore environment-specific files
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and databases
+*.log
+*.sqlite3

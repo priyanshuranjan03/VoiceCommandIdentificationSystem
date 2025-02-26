@@ -2,7 +2,7 @@
 # --------------------------------
 # Start MongoDB service
 # --------------------------------
-sudo systemctl start mongodb
+sudo systemctl start mongod
 
 # --------------------------------
 # Start Jarvis service with virtualenv
@@ -12,4 +12,4 @@ sudo systemctl start mongodb
 # --------------------------------
 # Stop MongoDB service
 # --------------------------------
-sudo systemctl stop mongodb
+sudo systemctl stop mongod
